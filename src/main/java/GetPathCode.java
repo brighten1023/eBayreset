@@ -6,24 +6,30 @@ import java.io.IOException;
 public class GetPathCode {
     public static String getPathCode(String appId,String cateId) throws IOException {
         String userAgent = RandomUserAgent.getRandomUserAgent();
-        String getItemIdURL = "https://open.api.ebay.com/Shopping?callname=GetCategoryInfo&appid=" + appId + "&version=967&siteid=2&CategoryID="+cateId;
-        Document doc =null;
+        String getItemIdURL = "https://open.api.ebay.com/Shopping?callname=GetCategoryInfo&appid=" + appId + "&version=967&siteid=2&CategoryID=" + cateId;
+        Document doc = null;
         try {
-            Thread.sleep(1000);
+            //Thread.sleep(1000);
             doc = Jsoup.connect(getItemIdURL).userAgent(userAgent).maxBodySize(0).get();
-        }catch (IOException e){
+        } catch (IOException e) {
             doc = Jsoup.connect(getItemIdURL).userAgent(userAgent).maxBodySize(0).get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
 
         String ack = doc.selectFirst("Ack").text();
-        if (ack.equals("Success")){
-            String cateCode = doc.selectFirst("CategoryIDPath").text().replace(":",">") + "\t" + doc.selectFirst("CategoryNamePath").text().replace(":",">");
+
+        if (ack.equals("Success")) {
+            String cateCode = doc.selectFirst("CategoryIDPath").text().replace(":", ">") + "\t" + doc.selectFirst("CategoryNamePath").text().replace(":", ">");
             return cateCode;
-        }else {
-            System.out.println("Check the ID limit!!!!");
-            return "!";
+        } else {
+            String mesg = doc.selectFirst("ShortMessage").text();
+            if (mesg.equals("IP limit exceeded.")) {
+                System.out.println("Get this appID limit!!!!");
+                System.exit(0);
+                return "!";
+            } else {
+                System.out.println("Can not get the pathcode");
+                return "!";
+            }
         }
 
     }
